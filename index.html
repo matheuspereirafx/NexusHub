@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        .font-syne { font-family: 'Syne', sans-serif; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+        /* ── SIDEBAR ── */
+        #sidebar {
+            width: 60px;
+            background: #050810;
+            border-right: 1px solid rgba(255,255,255,0.045);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 14px 0 16px;
+            gap: 3px;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+        #sidebar.visible { display: flex; }
+
+        .nav-logo {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #1d4ed8, #4338ca);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+        }
+
+        .nav-btn {
+            width: 40px; height: 40px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+            color: #374151;
+            position: relative;
+            border: 1px solid transparent;
+            background: transparent;
+            flex-shrink: 0;
+        }
+        .nav-btn:hover { background: rgba(59,130,246,0.09); color: #60a5fa; border-color: rgba(59,130,246,0.14); }
+        .nav-btn.active { background: rgba(59,130,246,0.16); color: #3b82f6; border-color: rgba(59,130,246,0.28); box-shadow: 0 0 0 1px rgba(59,130,246,0.15) inset; }
+
+        .nav-tooltip {
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%; transform: translateY(-50%);
+            background: #0f172a;
+            color: #f1f5f9;
+            font-size: 11px; font-weight: 700;
+            white-space: nowrap; padding: 5px 10px; border-radius: 8px;
+            pointer-events: none; opacity: 0; transition: opacity 0.13s;
+            border: 1px solid rgba(255,255,255,0.07);
+            letter-spacing: 0.04em; font-family: 'Syne', sans-serif; z-index: 9999;
+        }
+        .nav-btn:hover .nav-tooltip { opacity: 1; }
+
+        .nav-live-dot {
+            position: absolute; top: 7px; right: 7px;
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #3b82f6; box-shadow: 0 0 5px #3b82f6;
+        }
+
+        .nav-divider { width: 24px; height: 1px; background: rgba(255,255,255,0.05); margin: 5px 0; flex-shrink: 0; }
+        .nav-spacer { flex: 1; }
+
+        /* ── SCREENS ── */
+        #setup-screen, #loading-screen, #app-container, #dashboard-screen, #creator-screen { display: none; }
+
+        /* ── LAYOUT ── */
+        #layout { display: flex; flex-direction: row; width: 100vw; height: 100vh; overflow: hidden; }
+        #content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+        /* ── PLAYER ── */
+        .video-active { background: rgba(30,64,175,0.12) !important; border-left: 3px solid #3b82f6; }
+
+        /* ── DRAG OVERLAY ── */
+        #drag-overlay {
+            display: none; position: fixed; top:0; left:0; width:100vw; height:100vh;
+            background: rgba(5,8,16,0.97); z-index: 9999;
+            justify-content: center; align-items: center; border: 2px dashed rgba(59,130,246,0.5);
+        }
+        #drag-overlay.active { display: flex; }
+
+        /* ── COURSE CARDS ── */
+        .course-card { transition: all 0.28s cubic-bezier(0.4,0,0.2,1); }
+        .course-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px -6px rgba(37,99,235,0.2); border-color: rgba(59,130,246,0.3) !important; }
+
+        /* ── CREATOR ── */
+        .creator-avatar-placeholder {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: linear-gradient(135deg,#1e3a5f,#1e40af 55%,#4338ca);
+            border: 2px solid rgba(59,130,246,0.4);
+            box-shadow: 0 0 0 6px rgba(59,130,246,0.06), 0 8px 30px rgba(37,99,235,0.22);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.6rem; font-family: 'Syne', sans-serif; font-weight: 800; color: #fff;
+        }
+        .social-link {
+            display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px;
+            border-radius: 12px; font-weight: 700; font-size: 13px;
+            transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+            text-decoration: none; border: 1px solid transparent; font-family: 'Syne', sans-serif;
+        }
+        .social-link.github { background: #0d1117; color: #e6edf3; border-color: #21262d; }
+        .social-link.github:hover { background: #161b22; border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,130,246,0.14); }
+        .social-link.linkedin { background: #060f1e; color: #7dd3fc; border-color: #0e2040; }
+        .social-link.linkedin:hover { background: #0a1628; border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,130,246,0.14); }
+
+        .skill-tag {
+            background: rgba(59,130,246,0.08); color: #93c5fd;
+            border: 1px solid rgba(59,130,246,0.16); border-radius: 999px;
+            padding: 3px 12px; font-size: 11px; font-weight: 500;
+        }
+        .creator-card {
+            background: linear-gradient(150deg,#080d1c 0%,#0b1020 60%,#0d1230 100%);
+            border: 1px solid rgba(255,255,255,0.055); border-radius: 20px;
+            padding: 34px; position: relative; overflow: hidden;
+        }
+        .creator-card::before {
+            content:''; position:absolute; top:-80px; right:-80px;
+            width:260px; height:260px; border-radius:50%;
+            background:radial-gradient(circle,rgba(99,102,241,0.09) 0%,transparent 70%); pointer-events:none;
+        }
+        .creator-card::after {
+            content:''; position:absolute; bottom:-50px; left:-50px;
+            width:200px; height:200px; border-radius:50%;
+            background:radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 70%); pointer-events:none;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.022); border: 1px solid rgba(255,255,255,0.045);
+            border-radius: 12px; padding: 14px 16px; text-align: center;
+        }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+        .anim1 { animation: fadeUp 0.38s cubic-bezier(0.4,0,0.2,1) 0s both; }
+        .anim2 { animation: fadeUp 0.38s cubic-bezier(0.4,0,0.2,1) 0.07s both; }
+        .anim3 { animation: fadeUp 0.38s cubic-bezier(0.4,0,0.2,1) 0.14s both; }
+
+        @keyframes spin360 { to { transform: rotate(360deg); } }
+        .spinner { animation: spin360 0.9s linear infinite; }
+    </style>
+</head>
+<body style="background:#060a12; color:#cbd5e1; overflow:hidden;">
+
+<!-- MODAL -->
+<div id="custom-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);">
+    <div class="p-6 rounded-2xl max-w-sm w-full mx-4 shadow-2xl" style="background:#0b1120; border:1px solid rgba(255,255,255,0.07);">
+        <h3 class="text-lg font-bold text-white mb-1 font-syne" id="modal-title">Aviso</h3>
+        <p class="text-slate-400 text-sm mb-6" id="modal-desc"></p>
+        <div class="flex justify-end gap-3">
+            <button id="modal-cancel" class="hidden px-4 py-2 rounded-lg transition text-sm font-medium" style="background:rgba(255,255,255,0.05); color:#94a3b8; border:1px solid rgba(255,255,255,0.07);">Cancelar</button>
+            <button id="modal-ok" class="px-4 py-2 rounded-lg transition text-sm font-semibold font-syne" style="background:#1d4ed8; color:#fff;">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- DRAG OVERLAY -->
+<div id="drag-overlay">
+    <div class="text-center pointer-events-none">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3);">
+            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white font-syne">Solte os arquivos aqui</h2>
+        <p class="text-slate-500 mt-2 text-sm">Pastas e vídeos serão organizados automaticamente</p>
+    </div>
+</div>
+
+<!-- ROOT -->
+<div id="layout">
+
+    <!-- ══════════════ SIDEBAR ══════════════ -->
+    <nav id="sidebar">
+        <div class="nav-logo">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+
+        <!-- Biblioteca -->
+        <button class="nav-btn active" id="nav-library" onclick="showDashboard()">
+            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+            </svg>
+            <span class="nav-tooltip">Biblioteca</span>
+        </button>
+
+        <!-- Player (apenas quando tem curso aberto) -->
+        <button class="nav-btn" id="nav-player" onclick="goToPlayer()" style="display:none;">
+            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+            </svg>
+            <span class="nav-live-dot"></span>
+            <span class="nav-tooltip">Player</span>
+        </button>
+
+        <div class="nav-spacer"></div>
+        <div class="nav-divider"></div>
+
+        <!-- Adicionar -->
+        <label class="nav-btn" title="">
+            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/>
+            </svg>
+            <input type="file" id="nav-add-input" webkitdirectory directory multiple class="hidden">
+            <span class="nav-tooltip">Adicionar</span>
+        </label>
+
+        <div class="nav-divider"></div>
+
+        <!-- Criador ← NOVO -->
+        <button class="nav-btn" id="nav-creator" onclick="showCreator()">
+            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span class="nav-tooltip">Criador</span>
+        </button>
+    </nav>
+    <!-- ══════════════════════════════════════ -->
+
+    <!-- CONTENT -->
+    <div id="content-area">
+
+        <!-- ─── SETUP ─── -->
+        <div id="setup-screen" style="flex:1; display:none; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; background:#060a12; min-height:100vh;">
+            <div style="max-width:560px; width:100%;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:36px;">
+                    <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#4338ca);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(59,130,246,0.28);">
+                        <svg style="width:20px;height:20px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="font-syne" style="font-size:22px;font-weight:800;color:white;letter-spacing:-0.5px;">NexusHub</span>
+                </div>
+
+                <label style="cursor:pointer; display:block;">
+                    <div id="setup-dropzone" style="border:2px dashed rgba(255,255,255,0.07); border-radius:20px; padding:52px 32px; transition:all 0.25s; background:rgba(255,255,255,0.015);"
+                         onmouseenter="this.style.borderColor='rgba(59,130,246,0.4)';this.style.background='rgba(59,130,246,0.04)';"
+                         onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.015)';">
+                        <div style="width:56px;height:56px;border-radius:16px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.18);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                            <svg style="width:28px;height:28px;color:#60a5fa;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <h1 class="font-syne" style="font-size:20px;font-weight:800;color:white;margin-bottom:8px;">Arraste sua pasta de cursos</h1>
+                        <p style="color:#475569;font-size:13px;margin-bottom:22px;">ou clique para selecionar</p>
+                        <span class="font-syne" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:12px;font-size:13px;font-weight:700;color:white;background:linear-gradient(135deg,#1d4ed8,#4338ca);box-shadow:0 4px 16px rgba(37,99,235,0.3);">
+                            <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Selecionar Pasta
+                        </span>
+                    </div>
+                    <input type="file" id="folder-input" webkitdirectory directory multiple class="hidden">
+                </label>
+
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;">
+                    <div style="background:rgba(255,255,255,0.018);border:1px solid rgba(255,255,255,0.04);border-radius:14px;padding:16px;text-align:left;">
+                        <span class="font-syne" style="font-size:10px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.08em;">01</span>
+                        <h3 class="font-syne" style="color:white;font-size:13px;font-weight:700;margin:6px 0 4px;">Importe Pastas</h3>
+                        <p style="color:#334155;font-size:11px;">O sistema organiza tudo automaticamente.</p>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.018);border:1px solid rgba(255,255,255,0.04);border-radius:14px;padding:16px;text-align:left;">
+                        <span class="font-syne" style="font-size:10px;font-weight:700;color:#8b5cf6;text-transform:uppercase;letter-spacing:0.08em;">02</span>
+                        <h3 class="font-syne" style="color:white;font-size:13px;font-weight:700;margin:6px 0 4px;">Estude Offline</h3>
+                        <p style="color:#334155;font-size:11px;">Sem internet, sem uploads.</p>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.018);border:1px solid rgba(255,255,255,0.04);border-radius:14px;padding:16px;text-align:left;">
+                        <span class="font-syne" style="font-size:10px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.08em;">03</span>
+                        <h3 class="font-syne" style="color:white;font-size:13px;font-weight:700;margin:6px 0 4px;">Progresso Salvo</h3>
+                        <p style="color:#334155;font-size:11px;">Histórico guardado no browser.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── LOADING ─── -->
+        <div id="loading-screen" style="flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;background:#060a12;min-height:100vh;">
+            <div class="spinner" style="width:40px;height:40px;border-radius:50%;border:2px solid transparent;border-top-color:#3b82f6;border-right-color:#4338ca;margin-bottom:20px;"></div>
+            <h2 class="font-syne" style="font-size:16px;font-weight:700;color:white;">Construindo biblioteca...</h2>
+            <p id="loading-status" style="color:#475569;font-size:13px;margin-top:6px;">Aguarde um momento.</p>
+        </div>
+
+        <!-- ─── DASHBOARD ─── -->
+        <div id="dashboard-screen" style="flex:1;display:none;flex-direction:column;height:100%;overflow-y:auto;background:#060a12;">
+            <div style="max-width:1100px;margin:0 auto;padding:28px 32px;width:100%;">
+                <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:28px;gap:12px;">
+                    <div>
+                        <h1 class="font-syne" style="font-size:22px;font-weight:800;color:white;margin:0 0 3px;">Minha Biblioteca</h1>
+                        <p style="color:#475569;font-size:13px;margin:0;">Continue de onde parou ou comece algo novo.</p>
+                    </div>
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:12px;font-size:13px;font-weight:600;color:#94a3b8;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.025);transition:all 0.18s;" onmouseenter="this.style.color='white';this.style.borderColor='rgba(255,255,255,0.1)';" onmouseleave="this.style.color='#94a3b8';this.style.borderColor='rgba(255,255,255,0.06)';">
+                        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Adicionar Conteúdo
+                        <input type="file" id="add-more-input-dash" webkitdirectory directory multiple class="hidden">
+                    </label>
+                </div>
+
+                <!-- Filtros -->
+                <div id="dashboard-filters" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;">
+                    <button class="filter-btn" data-filter="all" style="background:rgba(59,130,246,0.18);color:#93c5fd;border:1px solid rgba(59,130,246,0.28);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;">Todos</button>
+                    <button class="filter-btn" data-filter="not_started" style="background:transparent;color:#475569;border:1px solid rgba(255,255,255,0.06);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;">Não Iniciados</button>
+                    <button class="filter-btn" data-filter="in_progress" style="background:transparent;color:#475569;border:1px solid rgba(255,255,255,0.06);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;">Em Andamento</button>
+                    <button class="filter-btn" data-filter="completed" style="background:transparent;color:#475569;border:1px solid rgba(255,255,255,0.06);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;">Concluídos</button>
+                </div>
+
+                <div id="courses-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;"></div>
+
+                <!-- Footer -->
+                <div style="margin-top:52px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:11px;color:#1e293b;">© 2026 NexusHub</span>
+                    <button onclick="showCreator()" style="display:flex;align-items:center;gap:6px;font-size:11px;color:#415269;background:none;border:none;cursor:pointer;transition:color 0.15s;" onmouseenter="this.style.color='#475569'" onmouseleave="this.style.color='#1e3a5f'">
+                        <svg style="width:13px;height:13px;" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/></svg>
+                        matheuspereirafx
+                    </button>
+                </div>
+            </div>
+
+        <!-- Creator -->
+        </div>
+
+          <div id="creator-screen" style="flex:1;display:none;flex-direction:column;height:100%;overflow-y:auto;background:#060a12;">
+            <div style="max-width:640px;margin:0 auto;padding:28px 32px;width:100%;">
+                <div class="anim1" style="margin-bottom:28px;">
+                    <span class="font-syne" style="font-size:10px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.1em;">Sobre o Projeto</span>
+                    <h1 class="font-syne" style="font-size:22px;font-weight:800;color:white;margin:4px 0 0;">Criador</h1>
+                </div>
+
+                <div class="creator-card anim2">
+                    <!-- Avatar + Info -->
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;margin-bottom:28px;">
+                        <div>
+                            <img class="creator-avatar-placeholder" src="https://media.licdn.com/dms/image/v2/D4D03AQFVNgY5ZBMwwQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1713650194714?e=1773273600&v=beta&t=OcbfJxXkhwI2ZO4UHbNdzOLrb0O7ZoggdEH3lWiR4m4" alt="M">
+                        </div>
+                        <div style="flex:1;min-width:180px;">
+                            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:4px;">
+                                <h2 class="font-syne" style="font-size:18px;font-weight:800;color:white;margin:0;">Matheus Pereira</h2>
+                                <span class="font-syne" style="background:rgba(59,130,246,0.14);color:#60a5fa;border:1px solid rgba(59,130,246,0.22);border-radius:999px;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:0.05em;">CRIADOR</span>
+                            </div>
+                            <p style="color:#3b82f6;font-size:12px;font-weight:600;margin:0 0 10px;">@matheuspereirafx</p>
+                            <p style="color:#475569;font-size:13px;line-height:1.65;margin:0 0 14px;max-width:280px;">Desenvolvedor apaixonado por criar ferramentas que tornam o aprendizado mais acessível. Este projeto nasceu da necessidade de estudar cursos offline com praticidade.</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                <span class="skill-tag">HTML / CSS</span>
+                                <span class="skill-tag">JavaScript</span>
+                                <span class="skill-tag">Tailwind</span>
+                                <span class="skill-tag">UI Design</span>
+                                <span class="skill-tag">Open Source</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px solid rgba(255,255,255,0.04);margin-bottom:24px;"></div>
+
+                    <!-- Sociais -->
+                    <div style="margin-bottom:24px;">
+                        <p class="font-syne" style="font-size:10px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Conecte-se</p>
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                            <a href="https://github.com/matheuspereirafx" target="_blank" class="social-link github" style="flex:1;min-width:160px;">
+                                <svg style="width:18px;height:18px;flex-shrink:0;" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/></svg>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;line-height:1.2;">GitHub</div>
+                                    <div style="font-size:10px;color:#374151;font-weight:400;font-family:'Inter',sans-serif;">github.com/matheuspereirafx</div>
+                                </div>
+                            </a>
+                            <a href="https://www.linkedin.com/in/matheus-pereira-8ba75820b/" target="_blank" class="social-link linkedin" style="flex:1;min-width:160px;">
+                                <svg style="width:18px;height:18px;flex-shrink:0;" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;line-height:1.2;">LinkedIn</div>
+                                    <div style="font-size:10px;color:#0e2a4a;font-weight:400;font-family:'Inter',sans-serif;">https://www.linkedin.com/in/matheus-pereira-8ba75820b/</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div>
+                        <p class="font-syne" style="font-size:10px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Sobre o Projeto</p>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+                            <div class="stat-box"><div class="font-syne" style="font-size:20px;font-weight:800;color:white;margin-bottom:3px;">100%</div><div style="font-size:10px;color:#334155;">Offline</div></div>
+                            <div class="stat-box"><div class="font-syne" style="font-size:20px;font-weight:800;color:white;margin-bottom:3px;">0</div><div style="font-size:10px;color:#334155;">Dependências</div></div>
+                            <div class="stat-box"><div class="font-syne" style="font-size:20px;font-weight:800;color:white;margin-bottom:3px;">∞</div><div style="font-size:10px;color:#334155;">Cursos</div></div>
+                        </div>
+                        <p style="color:#334155;font-size:12px;line-height:1.65;">NexusHub é open source — sem servidores, sem login, sem rastreamento. Apenas os seus cursos, organizados no seu navegador.</p>
+                    </div>
+                </div>
+
+                <p class="anim3 font-syne" style="text-align:center;font-size:11px;color:#ffffff;margin-top:24px;">Feito com ♥ por matheuspereirafx · © 2026</p>
+            </div>
+        </div>
+
+        <!-- ─── PLAYER ─── -->
+        <div id="app-container" style="flex:1;display:none;flex-direction:row;height:100%;overflow:hidden;">
+            <!-- Vídeo -->
+            <div style="flex:1;display:flex;flex-direction:column;background:#000;">
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;background:#000;">
+                    <video id="main-player" style="width:100%;max-height:100%;aspect-ratio:16/9;" controls controlsList="nodownload"></video>
+                </div>
+                <div style="padding:20px 24px;background:#080c18;border-top:1px solid rgba(255,255,255,0.04);">
+                    <h2 id="current-video-title" class="font-syne" style="font-size:18px;font-weight:800;color:white;margin:0 0 12px;">Selecione uma aula</h2>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <button id="mark-watched-btn" style="display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;transition:all 0.15s;">
+                            <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span id="watched-text">Marcar como concluída</span>
+                        </button>
+                        <div style="display:flex;gap:8px;">
+                            <button id="prev-btn" style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button id="next-btn" style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playlist -->
+            <div style="width:320px;display:flex;flex-direction:column;height:100%;background:#060a12;border-left:1px solid rgba(255,255,255,0.04);flex-shrink:0;">
+                <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;">
+                    <h3 id="player-course-name" class="font-syne" style="font-size:13px;font-weight:700;color:white;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;">Nome do Curso</h3>
+                    <label style="cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#374151;border:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02);transition:all 0.15s;" onmouseenter="this.style.color='#94a3b8'" onmouseleave="this.style.color='#374151'">
+                        <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <input type="file" id="add-more-input-player" webkitdirectory directory multiple class="hidden">
+                    </label>
+                </div>
+                <!-- Progress -->
+                <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px;">
+                        <span id="progress-text" class="font-syne" style="color:#3b82f6;font-weight:700;">0%</span>
+                        <span id="videos-count-text" style="color:#334155;">0/0 aulas</span>
+                    </div>
+                    <div style="width:100%;background:rgba(255,255,255,0.05);border-radius:999px;height:3px;overflow:hidden;">
+                        <div id="progress-bar" style="height:100%;border-radius:999px;width:0%;background:linear-gradient(90deg,#1d4ed8,#4338ca);transition:width 0.5s;"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+                        <div style="background:rgba(255,255,255,0.018);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
+                            <p style="color:#1e293b;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 3px;">Total</p>
+                            <p id="total-time-text" class="font-syne" style="color:#475569;font-size:11px;font-weight:600;margin:0;">00:00:00</p>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.018);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
+                            <p style="color:#1e293b;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 3px;">Assistido</p>
+                            <p id="watched-time-text" class="font-syne" style="color:#3b82f6;font-size:11px;font-weight:600;margin:0;">00:00:00</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="playlist" style="flex:1;overflow-y:auto;padding:6px;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ═══ ESTADO ═══
+let allCoursesMap={}, globalCourseData={}, currentCourseFilter='all';
+let activeCourseId=null, lastActiveCourseId=null, activeVideoFiles=[], activeFileTree=[], currentVideoIndex=-1, currentPlayingPath=null;
+
+const setupScreen=document.getElementById('setup-screen');
+const dashboardScreen=document.getElementById('dashboard-screen');
+const loadingScreen=document.getElementById('loading-screen');
+const appContainer=document.getElementById('app-container');
+const creatorScreen=document.getElementById('creator-screen');
+const sidebar=document.getElementById('sidebar');
+const mainPlayer=document.getElementById('main-player');
+const playlistEl=document.getElementById('playlist');
+const coursesGrid=document.getElementById('courses-grid');
+const playerCourseName=document.getElementById('player-course-name');
+const progressBar=document.getElementById('progress-bar');
+const progressText=document.getElementById('progress-text');
+const videosCountText=document.getElementById('videos-count-text');
+const totalTimeText=document.getElementById('total-time-text');
+const watchedTimeText=document.getElementById('watched-time-text');
+const markWatchedBtn=document.getElementById('mark-watched-btn');
+const watchedText=document.getElementById('watched-text');
+const currentVideoTitle=document.getElementById('current-video-title');
+
+// ═══ MODAL ═══
+let modalCallback=null;
+function showModal(title,desc,isConfirm=false,onConfirm=null){
+    document.getElementById('modal-title').innerText=title;
+    document.getElementById('modal-desc').innerText=desc;
+    const modal=document.getElementById('custom-modal');
+    const cancelBtn=document.getElementById('modal-cancel');
+    const okBtn=document.getElementById('modal-ok');
+    modal.classList.remove('hidden'); modalCallback=onConfirm;
+    if(isConfirm){ cancelBtn.classList.remove('hidden'); okBtn.style.background='#dc2626'; okBtn.innerText='Remover'; }
+    else { cancelBtn.classList.add('hidden'); okBtn.style.background='#1d4ed8'; okBtn.innerText='OK'; }
+}
+document.getElementById('modal-cancel').onclick=()=>{ document.getElementById('custom-modal').classList.add('hidden'); modalCallback=null; };
+document.getElementById('modal-ok').onclick=()=>{ document.getElementById('custom-modal').classList.add('hidden'); if(modalCallback) modalCallback(); };
+
+// ═══ HELPERS ═══
+function formatTime(s){ if(isNaN(s)||s<0)return"00:00:00"; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=Math.floor(s%60),p=v=>v.toString().padStart(2,'0'); return h>0?`${p(h)}:${p(m)}:${p(ss)}`:`${p(m)}:${p(ss)}`; }
+function getGradient(name){ let h=0; for(let i=0;i<name.length;i++)h=name.charCodeAt(i)+((h<<5)-h); const hue=Math.abs(h%360); return `linear-gradient(135deg,hsl(${hue},60%,16%),hsl(${(hue+45)%360},70%,10%))`; }
+
+const DB_KEY='nexushub_v3';
+function loadGlobalProgress(){ try{ const s=localStorage.getItem(DB_KEY); if(s) globalCourseData={...globalCourseData,...JSON.parse(s)}; }catch(e){} }
+function saveGlobalProgress(){ localStorage.setItem(DB_KEY,JSON.stringify(globalCourseData)); }
+
+// ═══ NAV ═══
+function setActiveNav(id){
+    ['nav-library','nav-player','nav-creator'].forEach(n=>{ const el=document.getElementById(n); if(el) el.classList.remove('active'); });
+    const t=document.getElementById(id); if(t) t.classList.add('active');
+}
+function showNavPlayer(show){ const b=document.getElementById('nav-player'); if(b) b.style.display=show?'flex':'none'; }
+
+// ═══ SCREENS ═══
+function hideAll(){
+    [setupScreen,dashboardScreen,loadingScreen,appContainer,creatorScreen].forEach(s=>{ if(s) s.style.display='none'; });
+}
+function showDashboard(){
+    hideAll();
+    // Preserva o lastActiveCourseId para o botao Player continuar funcionando
+    if(activeCourseId) lastActiveCourseId=activeCourseId;
+    activeCourseId=null;
+    if(Object.keys(allCoursesMap).length===0){ sidebar.classList.remove('visible'); setupScreen.style.display='flex'; return; }
+    sidebar.classList.add('visible'); setActiveNav('nav-library');
+    dashboardScreen.style.display='flex'; renderDashboard();
+    if(!mainPlayer.paused) mainPlayer.pause();
+}
+function showCreator(){
+    hideAll(); sidebar.classList.add('visible'); setActiveNav('nav-creator');
+    creatorScreen.style.display='flex';
+}
+function goToPlayer(){
+    const targetId=activeCourseId||lastActiveCourseId;
+    if(!targetId) return;
+    // Se estava na biblioteca (activeCourseId null), restaura o curso ativo
+    if(!activeCourseId && lastActiveCourseId){
+        activeCourseId=lastActiveCourseId;
+        activeVideoFiles=allCoursesMap[activeCourseId]?.files||[];
+        playerCourseName.innerText=allCoursesMap[activeCourseId]?.name||'';
+        if(!activeFileTree.length) activeFileTree=buildFileTree(activeVideoFiles);
+    }
+    hideAll(); sidebar.classList.add('visible'); setActiveNav('nav-player');
+    appContainer.style.display='flex';
+    updatePlayerUI();
+}
+
+// ═══ EXTRACT COURSES ═══
+function extractCourses(files,targetCourseId=null){
+    const roots=new Set(files.map(f=>f.webkitRelativePath.split('/')[0]));
+    const isSingleRoot=roots.size===1;
+    const hasRootLevelFiles=files.some(f=>f.webkitRelativePath.split('/').length===2);
+
+    // Detecta se a pasta raiz unica e pasta mestre (multiplos cursos) ou e o proprio curso
+    let isMasterFolder=false;
+    if(isSingleRoot && !hasRootLevelFiles){
+        const level1Folders=new Set(files.map(f=>f.webkitRelativePath.split('/')[1]).filter(Boolean));
+        // Se so tem 1 subpasta de nivel 1 -> a raiz JA e o curso (ex: Curso > Modulos > aulas)
+        // Se tem 2+ subpastas de nivel 1 -> provavelmente pasta mestre com varios cursos
+        if(level1Folders.size>=2){
+            isMasterFolder=true;
+        }
+        // Excecao: se as subpastas nivel 1 sao todas numeradas/sequenciais (modulos)
+        // e nao tem sub-subpastas proprias, ainda pode ser 1 curso so com modulos
+        // Verificamos: se todas as subpastas nivel1 tem arquivos EM nivel2 (sem sub-subpastas) -> modulos de 1 curso
+        if(isMasterFolder){
+            const allLevel1HaveOnlyVideos=[...level1Folders].every(folder=>{
+                const filesInFolder=files.filter(f=>f.webkitRelativePath.split('/')[1]===folder);
+                // todos os arquivos dessa subpasta estao em nivel exatamente 3 (raiz/nivel1/arquivo)
+                return filesInFolder.every(f=>f.webkitRelativePath.split('/').length===3);
+            });
+            // Se todas as subpastas de nivel1 contem apenas arquivos diretos (nivel3) e nao sub-subpastas
+            // -> sao modulos de 1 unico curso, nao cursos separados
+            if(allLevel1HaveOnlyVideos && level1Folders.size<=20){
+                // Heuristica adicional: nome das pastas parece sequencial? (01, 02, Modulo 1, etc.)
+                const folderNames=[...level1Folders];
+                const looksSequential=folderNames.every(n=>/^(\d|modulo|module|aula|lesson|capitulo|chapter|parte|part|secao|section)/i.test(n));
+                if(looksSequential) isMasterFolder=false;
+            }
+        }
+    }
+
+    files.forEach(file=>{
+        const parts=file.webkitRelativePath.split('/');
+        let name,path,id;
+        if(targetCourseId&&allCoursesMap[targetCourseId]){
+            id=targetCourseId; name=allCoursesMap[targetCourseId].name; path=file.webkitRelativePath;
+        } else {
+            if(isMasterFolder && parts.length>2){
+                name=parts[1]; path=parts.slice(2).join('/');
+            } else if(isMasterFolder && parts.length===2){
+                name=parts[0]; path=parts[1];
+            } else if(parts.length>1){
+                name=parts[0]; path=parts.slice(1).join('/');
+            } else {
+                name="Aulas Avulsas"; path=file.webkitRelativePath;
+            }
+            if(!path) path=file.name;
+            id='course_'+name.replace(/\W/g,'_');
+        }
+        if(!allCoursesMap[id]) allCoursesMap[id]={id,name,files:[]};
+        file.courseRelativePath=path; allCoursesMap[id].files.push(file);
+    });
+}
+
+async function processNewFiles(files,isAppending=false,targetCourseId=null){
+    let vids=files.filter(f=>f.type.startsWith('video/')||f.name.endsWith('.mkv')||f.name.endsWith('.mp4'));
+    if(!vids.length){ showModal("Aviso","Nenhum arquivo de vídeo encontrado."); return; }
+    vids.forEach(v=>{ if(!v.webkitRelativePath) Object.defineProperty(v,'webkitRelativePath',{value:"Aulas Avulsas/"+v.name,writable:true,configurable:true}); });
+    if(isAppending){
+        const ex=new Set(Object.values(allCoursesMap).flatMap(c=>c.files.map(f=>f.webkitRelativePath)));
+        vids=vids.filter(v=>!ex.has(v.webkitRelativePath));
+        if(!vids.length){ showModal("Aviso","Estes arquivos já foram adicionados."); return; }
+    }
+    hideAll(); sidebar.classList.remove('visible'); loadingScreen.style.display='flex';
+    extractCourses(vids,targetCourseId);
+    Object.values(allCoursesMap).forEach(c=>c.files.sort((a,b)=>a.courseRelativePath.localeCompare(b.courseRelativePath,undefined,{numeric:true,sensitivity:'base'})));
+    loadGlobalProgress();
+    const flat=Object.values(allCoursesMap).flatMap(c=>c.files);
+    for(let i=0;i<flat.length;i++){
+        const f=flat[i];
+        if(!globalCourseData[f.webkitRelativePath]){
+            document.getElementById('loading-status').innerText=`Processando ${i+1} de ${flat.length}...`;
+            globalCourseData[f.webkitRelativePath]={duration:await getVideoDuration(f),watched:false};
+        }
+    }
+    loadingScreen.style.display='none';
+    if(activeCourseId&&(isAppending||targetCourseId)) openCourse(activeCourseId,false); else showDashboard();
+}
+
+function getVideoDuration(file){ return new Promise(r=>{ const v=document.createElement('video'); v.preload='metadata'; v.onloadedmetadata=()=>{ URL.revokeObjectURL(v.src); r(v.duration); }; v.onerror=()=>r(0); v.src=URL.createObjectURL(file); }); }
+
+function getCourseStats(c){ let t=0,wd=0,wc=0; c.files.forEach(f=>{ const d=globalCourseData[f.webkitRelativePath]; if(d){ t+=d.duration||0; if(d.watched){wd+=d.duration||0;wc++;} } }); return{totalDur:t,watchedDur:wd,totalVideos:c.files.length,watchedVideos:wc,percent:c.files.length===0?0:Math.round((wc/c.files.length)*100)}; }
+
+// ═══ DASHBOARD ═══
+function renderDashboard(){
+    coursesGrid.innerHTML='';
+    const filtered=Object.values(allCoursesMap).filter(c=>{
+        const s=getCourseStats(c);
+        if(currentCourseFilter==='all') return true;
+        if(currentCourseFilter==='not_started') return s.percent===0;
+        if(currentCourseFilter==='in_progress') return s.percent>0&&s.percent<100;
+        if(currentCourseFilter==='completed') return s.percent===100;
+    });
+    if(!filtered.length){
+        coursesGrid.innerHTML=`<div style="grid-column:1/-1;padding:60px 0;text-align:center;color:#1e293b;"><svg style="width:40px;height:40px;margin:0 auto 12px;opacity:.3;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg><p style="font-size:13px;">Nenhum curso nesta categoria.</p></div>`; return;
+    }
+    filtered.forEach(course=>{
+        const s=getCourseStats(course), bg=getGradient(course.name);
+        const card=document.createElement('div');
+        card.className='course-card';
+        card.style.cssText=`background:#090e1c;border:1px solid rgba(255,255,255,0.055);border-radius:18px;padding:18px;cursor:pointer;display:flex;flex-direction:column;position:relative;overflow:hidden;`;
+        card.innerHTML=`
+            <div style="position:absolute;top:0;left:0;width:100%;height:64px;opacity:.45;pointer-events:none;background:${bg};"></div>
+            <div class="del-course-btn" style="position:absolute;top:8px;right:8px;opacity:0;transition:opacity 0.15s;z-index:10;">
+                <button style="background:rgba(0,0,0,0.5);border:none;border-radius:8px;padding:6px;cursor:pointer;color:#374151;display:flex;align-items:center;transition:color 0.15s;" onmouseenter="this.style.color='#ef4444'" onmouseleave="this.style.color='#374151'">
+                    <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+            <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;z-index:5;border:1px solid rgba(255,255,255,0.1);background:${bg};">
+                <svg style="width:18px;height:18px;color:rgba(255,255,255,0.8);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C22.168 18.477 20.582 18 18.832 18c-1.747 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+            <h3 class="font-syne" style="font-size:13px;font-weight:700;color:white;margin:0 0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;z-index:5;" title="${course.name}">${course.name}</h3>
+            <p style="font-size:11px;color:#334155;margin:0 0 14px;position:relative;z-index:5;">${s.totalVideos} aulas · ${formatTime(s.totalDur)}</p>
+            <div style="margin-top:auto;position:relative;z-index:5;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
+                    <span class="font-syne" style="color:${s.percent===100?'#10b981':'#3b82f6'};font-weight:700;">${s.percent}%</span>
+                    <span style="color:#1e293b;">${s.watchedVideos}/${s.totalVideos}</span>
+                </div>
+                <div style="width:100%;background:rgba(255,255,255,0.05);border-radius:999px;height:2px;overflow:hidden;">
+                    <div style="height:100%;border-radius:999px;width:${s.percent}%;background:${s.percent===100?'#10b981':'linear-gradient(90deg,#1d4ed8,#4338ca)'};transition:width .6s;"></div>
+                </div>
+            </div>`;
+        card.onmouseenter=()=>{ card.querySelector('.del-course-btn').style.opacity='1'; };
+        card.onmouseleave=()=>{ card.querySelector('.del-course-btn').style.opacity='0'; };
+        card.onclick=(e)=>{ if(e.target.closest('.del-course-btn')) return; openCourse(course.id); };
+        card.querySelector('.del-course-btn button').onclick=(e)=>{ e.stopPropagation(); askRemoveItems(course.id,null,'course'); };
+        coursesGrid.appendChild(card);
+    });
+}
+
+// ═══ PLAYER ═══
+function openCourse(courseId,startPlayback=true){
+    const course=allCoursesMap[courseId]; if(!course) return;
+    activeCourseId=courseId; lastActiveCourseId=courseId; activeVideoFiles=course.files; playerCourseName.innerText=course.name;
+    showNavPlayer(true); hideAll(); sidebar.classList.add('visible'); setActiveNav('nav-player');
+    appContainer.style.display='flex';
+    activeFileTree=buildFileTree(activeVideoFiles); updatePlayerUI();
+    if(startPlayback){
+        const saved=globalCourseData[`${courseId}_lastIndex`];
+        if(saved!==undefined&&saved<activeVideoFiles.length) playVideo(saved);
+        else{ const f=activeVideoFiles.findIndex(f=>!globalCourseData[f.webkitRelativePath]?.watched); playVideo(f!==-1?f:0); }
+    } else {
+        const ci=activeVideoFiles.findIndex(f=>f.webkitRelativePath===currentPlayingPath);
+        if(ci!==-1){currentVideoIndex=ci;openFoldersFor(ci);} renderPlaylist();
+    }
+}
+
+function updatePlayerUI(){
+    if(!activeCourseId) return;
+    const s=getCourseStats(allCoursesMap[activeCourseId]);
+    progressBar.style.width=`${s.percent}%`;
+    progressText.innerText=`${s.percent}%`;
+    videosCountText.innerText=`${s.watchedVideos}/${s.totalVideos} aulas`;
+    totalTimeText.innerText=formatTime(s.totalDur);
+    watchedTimeText.innerText=formatTime(s.watchedDur);
+    renderPlaylist(); updateMarkBtn();
+}
+
+function buildFileTree(files){
+    let tree=[];
+    files.forEach((file,index)=>{
+        const parts=file.courseRelativePath.split('/'); let cur=tree;
+        for(let i=0;i<parts.length-1;i++){
+            const p=parts[i]; let folder=cur.find(n=>n.type==='folder'&&n.name===p);
+            if(!folder){folder={type:'folder',name:p,path:parts.slice(0,i+1).join('/'),children:[],isOpen:false};cur.push(folder);}
+            cur=folder.children;
+        }
+        cur.push({type:'file',name:parts[parts.length-1],file,index,path:file.webkitRelativePath});
+    });
+    if(tree.length===1&&tree[0].type==='folder') return tree[0].children;
+    return tree;
+}
+function openFoldersFor(index,nodes=activeFileTree){
+    for(const n of nodes){ if(n.type==='folder'){if(openFoldersFor(index,n.children)){n.isOpen=true;return true;}} else if(n.type==='file'&&n.index===index) return true; }
+    return false;
+}
+function playVideo(index){
+    if(index<0||index>=activeVideoFiles.length) return;
+    currentVideoIndex=index;
+    const file=activeVideoFiles[index]; currentPlayingPath=file.webkitRelativePath;
+    globalCourseData[`${activeCourseId}_lastIndex`]=index; saveGlobalProgress();
+    if(mainPlayer.src){try{URL.revokeObjectURL(mainPlayer.src);}catch(e){}}
+    mainPlayer.src=URL.createObjectURL(file);
+    const parts=file.courseRelativePath.split('/'), name=parts[parts.length-1].replace(/\.[^/.]+$/,"");
+    if(parts.length>1){
+        const folder=parts.slice(0,-1).map(p=>`<span>${p}</span>`).join('<span style="color:#1e293b;margin:0 3px;">/</span>');
+        currentVideoTitle.innerHTML=`<div style="font-size:9px;color:#3b82f6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:flex;flex-wrap:wrap;align-items:center;">${folder}</div><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>`;
+    } else { currentVideoTitle.innerHTML=`<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>`; }
+    mainPlayer.play().catch(()=>{});
+    document.getElementById('prev-btn').disabled=index===0;
+    document.getElementById('next-btn').disabled=index===activeVideoFiles.length-1;
+    openFoldersFor(index); updateMarkBtn(); renderPlaylist();
+}
+
+function renderTree(nodes,container,level){
+    nodes.forEach(node=>{
+        if(node.type==='folder'){
+            const wrap=document.createElement('div');
+            const hdr=document.createElement('div');
+            hdr.style.cssText=`padding-left:${level*9+6}px;padding-right:6px;padding-top:7px;padding-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-radius:9px;margin-top:2px;transition:background 0.12s;`;
+            hdr.onmouseenter=()=>hdr.style.background='rgba(255,255,255,0.025)';
+            hdr.onmouseleave=()=>hdr.style.background='';
+            hdr.innerHTML=`<div style="display:flex;align-items:center;flex:1;min-width:0;">
+                <svg style="width:11px;height:11px;margin-right:6px;flex-shrink:0;transition:transform 0.2s;color:${node.isOpen?'#3b82f6':'#1e293b'};transform:${node.isOpen?'rotate(90deg)':''};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                <svg style="width:13px;height:13px;margin-right:6px;flex-shrink:0;color:#a16207;" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+                <span class="font-syne" style="font-size:11px;font-weight:700;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${node.name}</span>
+            </div>
+            <button class="del-btn" style="border:none;background:none;cursor:pointer;padding:3px;border-radius:6px;color:#1e293b;opacity:0;transition:all 0.12s;flex-shrink:0;" onmouseenter="this.style.color='#ef4444'" onmouseleave="this.style.color='#1e293b'">
+                <svg style="width:11px;height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>`;
+            hdr.onmouseenter=()=>{ hdr.style.background='rgba(255,255,255,0.025)'; hdr.querySelector('.del-btn').style.opacity='1'; };
+            hdr.onmouseleave=()=>{ hdr.style.background=''; hdr.querySelector('.del-btn').style.opacity='0'; };
+            const children=document.createElement('div'); children.style.display=node.isOpen?'flex':'none'; children.style.flexDirection='column';
+            hdr.onclick=(e)=>{ if(e.target.closest('.del-btn')) return; node.isOpen=!node.isOpen; renderPlaylist(); };
+            hdr.querySelector('.del-btn').onclick=(e)=>{ e.stopPropagation(); askRemoveItems(node.path,true,'folder'); };
+            renderTree(node.children,children,level+1);
+            wrap.appendChild(hdr); wrap.appendChild(children); container.appendChild(wrap);
+        } else if(node.type==='file'){
+            const data=globalCourseData[node.path];
+            const isActive=node.index===currentVideoIndex, isWatched=data&&data.watched;
+            const name=node.name.replace(/\.[^/.]+$/,"");
+            const item=document.createElement('div');
+            item.style.cssText=`padding-left:${level*9+6}px;padding-right:6px;padding-top:6px;padding-bottom:6px;display:flex;align-items:center;justify-content:space-between;border-radius:9px;cursor:pointer;margin:1px 0;transition:background 0.12s;${isActive?'background:rgba(29,78,216,0.1);border-left:2px solid #3b82f6;':''}`;
+            if(!isActive){ item.onmouseenter=()=>item.style.background='rgba(255,255,255,0.02)'; item.onmouseleave=()=>item.style.background=''; }
+            item.innerHTML=`<div style="display:flex;align-items:center;flex:1;min-width:0;">
+                <div style="margin-right:8px;flex-shrink:0;">
+                    ${isWatched?`<svg style="width:13px;height:13px;color:#3b82f6;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`:`<svg style="width:13px;height:13px;color:#1e293b;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>`}
+                </div>
+                <p style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0;color:${isActive?'#e2e8f0':'#475569'};font-weight:${isActive?600:400};">${name}</p>
+            </div>
+            <button class="del-btn" style="border:none;background:none;cursor:pointer;padding:3px;border-radius:6px;color:#1e293b;opacity:0;transition:all 0.12s;flex-shrink:0;" onmouseenter="this.style.color='#ef4444'" onmouseleave="this.style.color='#1e293b'">
+                <svg style="width:11px;height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>`;
+            item.onmouseenter=()=>{ if(!isActive) item.style.background='rgba(255,255,255,0.02)'; item.querySelector('.del-btn').style.opacity='1'; };
+            item.onmouseleave=()=>{ if(!isActive) item.style.background=''; item.querySelector('.del-btn').style.opacity='0'; };
+            item.onclick=(e)=>{ if(e.target.closest('.del-btn')) return; playVideo(node.index); };
+            item.querySelector('.del-btn').onclick=(e)=>{ e.stopPropagation(); askRemoveItems(node.path,false,'file'); };
+            container.appendChild(item);
+        }
+    });
+}
+function renderPlaylist(){
+    playlistEl.innerHTML=''; renderTree(activeFileTree,playlistEl,0);
+    setTimeout(()=>{ const el=playlistEl.querySelector('[style*="border-left:2px solid"]'); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },50);
+}
+
+// ═══ REMOVE ═══
+function askRemoveItems(pOrId,isFolder,type){
+    const t={course:"Remover Curso",folder:"Remover Pasta",file:"Remover Aula"};
+    const d={course:"Tem certeza que deseja remover este curso?",folder:`Remover a pasta "${pOrId.split('/').pop()}"?`,file:"Remover esta aula?"};
+    showModal(t[type],d[type],true,()=>execRemove(pOrId,type));
+}
+function execRemove(pOrId,type){
+    if(type==='course'){delete allCoursesMap[pOrId];showNavPlayer(false);showDashboard();return;}
+    const prefix=type==='folder'?pOrId+'/':pOrId; let removed=false;
+    activeVideoFiles=activeVideoFiles.filter(f=>{
+        const m=type==='folder'?f.courseRelativePath.startsWith(prefix):f.webkitRelativePath===pOrId;
+        if(m&&currentPlayingPath===f.webkitRelativePath) removed=true; return !m;
+    });
+    allCoursesMap[activeCourseId].files=activeVideoFiles;
+    if(!activeVideoFiles.length){delete allCoursesMap[activeCourseId];showNavPlayer(false);showDashboard();return;}
+    activeFileTree=buildFileTree(activeVideoFiles);
+    if(removed) playVideo(0); else{currentVideoIndex=activeVideoFiles.findIndex(f=>f.webkitRelativePath===currentPlayingPath);updatePlayerUI();}
+}
+
+// ═══ MARK WATCHED ═══
+function updateMarkBtn(){
+    if(currentVideoIndex===-1) return;
+    const isWatched=globalCourseData[activeVideoFiles[currentVideoIndex].webkitRelativePath].watched;
+    if(isWatched){
+        markWatchedBtn.style.cssText="display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 16px;border-radius:10px;border:1px solid rgba(29,78,216,0.3);background:rgba(29,78,216,0.12);color:#93c5fd;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;transition:all .15s;";
+        watchedText.innerText="Concluída";
+    } else {
+        markWatchedBtn.style.cssText="display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:#475569;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;transition:all .15s;";
+        watchedText.innerText="Marcar como concluída";
+    }
+}
+document.getElementById('prev-btn').addEventListener('click',()=>playVideo(currentVideoIndex-1));
+document.getElementById('next-btn').addEventListener('click',()=>playVideo(currentVideoIndex+1));
+markWatchedBtn.addEventListener('click',()=>{
+    if(currentVideoIndex===-1) return;
+    const p=activeVideoFiles[currentVideoIndex].webkitRelativePath;
+    globalCourseData[p].watched=!globalCourseData[p].watched;
+    saveGlobalProgress(); updatePlayerUI();
+});
+mainPlayer.addEventListener('ended',()=>{
+    const p=activeVideoFiles[currentVideoIndex].webkitRelativePath;
+    if(!globalCourseData[p].watched){globalCourseData[p].watched=true;saveGlobalProgress();updatePlayerUI();}
+    if(currentVideoIndex<activeVideoFiles.length-1) playVideo(currentVideoIndex+1);
+});
+
+// ═══ DRAG & DROP ═══
+const dragOverlay=document.getElementById('drag-overlay'); let dragCounter=0;
+window.addEventListener('dragenter',e=>{e.preventDefault();dragCounter++;dragOverlay.classList.add('active');});
+window.addEventListener('dragleave',e=>{e.preventDefault();dragCounter--;if(!dragCounter) dragOverlay.classList.remove('active');});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',async e=>{
+    e.preventDefault();dragCounter=0;dragOverlay.classList.remove('active');
+    const isApp=Object.keys(allCoursesMap).length>0, items=e.dataTransfer.items, files=[], queue=[];
+    for(let i=0;i<items.length;i++) if(items[i].kind==='file'){const en=items[i].webkitGetAsEntry();if(en)queue.push(en);}
+    async function readEntry(entry,path=""){
+        if(entry.isFile) return new Promise(r=>entry.file(f=>{Object.defineProperty(f,'webkitRelativePath',{value:path+f.name,writable:true,configurable:true});files.push(f);r();}));
+        if(entry.isDirectory){const dr=entry.createReader();return new Promise(r=>dr.readEntries(async en=>{for(const e of en)await readEntry(e,path+entry.name+"/");r();}));}
+    }
+    for(const en of queue) await readEntry(en,en.isDirectory?en.name+"/":"");
+    if(files.length){const tId=appContainer.style.display==='flex'&&activeCourseId?activeCourseId:null;await processNewFiles(files,isApp,tId);}
+});
+
+// ═══ INPUTS ═══
+document.getElementById('folder-input').addEventListener('change',e=>processNewFiles(Array.from(e.target.files),false));
+document.getElementById('add-more-input-dash').addEventListener('change',e=>{processNewFiles(Array.from(e.target.files),true,null);e.target.value='';});
+document.getElementById('add-more-input-player').addEventListener('change',e=>{processNewFiles(Array.from(e.target.files),true,activeCourseId);e.target.value='';});
+document.getElementById('nav-add-input').addEventListener('change',e=>{
+    const tId=appContainer.style.display==='flex'?activeCourseId:null;
+    processNewFiles(Array.from(e.target.files),Object.keys(allCoursesMap).length>0,tId);
+    e.target.value='';
+});
+
+// ═══ FILTROS ═══
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+        document.querySelectorAll('.filter-btn').forEach(b=>{ b.style.cssText="background:transparent;color:#475569;border:1px solid rgba(255,255,255,0.06);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:all 0.15s;"; });
+        e.target.style.cssText="background:rgba(59,130,246,0.18);color:#93c5fd;border:1px solid rgba(59,130,246,0.28);padding:5px 16px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;";
+        currentCourseFilter=e.target.getAttribute('data-filter'); renderDashboard();
+    });
+});
+
+// ═══ INIT ═══
+setupScreen.style.display='flex';
+</script>
+</body>
+</html>
