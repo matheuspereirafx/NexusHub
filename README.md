@@ -6,15 +6,25 @@ NexusHub é um player focados em cursos offline feito em HTML puro. Basta abrir 
 
 **🚀 Funcionalidades**
 📁 Importação inteligente de pastas — detecta automaticamente se você está importando uma pasta mestre com vários cursos ou um único curso com módulos
+
 🎯 Progresso salvo — o avanço de cada aula é guardado no localStorage do navegador e persiste entre sessões
+
 📊 Dashboard visual — cards com barra de progresso, tempo total e aulas concluídas por curso
+
 🎬 Player integrado — reproduz vídeos localmente com controles de anterior/próximo e marcação de aulas concluídas
+
 📂 Playlist em árvore — navegue pelos módulos e aulas em uma sidebar com estrutura de pastas expansível
+
 🔍 Filtros de biblioteca — filtre cursos por Todos, Não Iniciados, Em Andamento ou Concluídos
+
 🖱️ Drag & Drop — arraste pastas diretamente para a janela do navegador
+
 ➕ Adicionar conteúdo — adicione novos cursos ou aulas a qualquer momento sem perder o progresso existente
+
 🗑️ Remoção granular — remova cursos, módulos ou aulas individuais
+
 💾 Zero dependências externas — funciona 100% offline após o primeiro carregamento
+
 
 **📦 Como usar**
 1. Baixe o projeto
