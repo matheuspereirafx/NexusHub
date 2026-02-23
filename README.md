@@ -38,23 +38,35 @@ Arraste sua pasta de cursos para a janela, ou clique em "Selecionar Pasta de Cur
 **🗂️ Estrutura de pastas suportada**
 O NexusHub detecta automaticamente dois formatos:
 Pasta mestre com múltiplos cursos:
+
 📁 Meus Cursos/
+
 ├── 📁 Curso de Python/
+
 │   ├── 📁 Módulo 1/
+
 │   │   ├── aula01.mp4
+
 │   │   └── aula02.mp4
+
 │   └── 📁 Módulo 2/
+
 │       └── aula01.mp4
 └── 📁 Curso de JavaScript/
     └── aula01.mp4
     
 Pasta de curso único com módulos:
 📁 Curso de Python/
+
 ├── 📁 Módulo 1 - Introdução/
+
 │   ├── aula01.mp4
+
 │   └── aula02.mp4
+
 └── 📁 Módulo 2 - Variáveis/
     └── aula01.mp4
+    
 Formatos de vídeo suportados: .mp4, .mkv, .webm e demais formatos suportados pelo navegador.
 
 
