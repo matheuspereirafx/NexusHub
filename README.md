@@ -1,3 +1,13 @@
+<div align="center">
+  <h2>🖥️ Visualização do Sistema</h2>
+  <img src="https://github.com/user-attachments/assets/3127f784-6d83-4be5-ac3e-f0ee04cc0f52" alt="Print da interface interna do projeto" width="900">
+  
+  <p align="center">
+    <em>Captura de tela da área interna, demonstrando o layout e as funcionalidades principais.</em>
+  </p>
+</div>
+
+
 Dê vida aos seus cursos armazenados localmente. O NexusHub foi desenvolvido para superar as limitações de plataformas arcaicas que não oferecem acompanhamento visual. Com ele, você transforma seus arquivos offline em uma biblioteca organizada, gamificada e com um dashboard elegante para acompanhar sua evolução em tempo real.
 
 **🎬 NexusHub — Biblioteca de Cursos Local**
