@@ -1,3 +1,5 @@
+Dê vida aos seus cursos armazenados localmente. O NexusHub foi desenvolvido para superar as limitações de plataformas arcaicas que não oferecem acompanhamento visual. Com ele, você transforma seus arquivos offline em uma biblioteca organizada, gamificada e com um dashboard elegante para acompanhar sua evolução em tempo real.
+
 **🎬 NexusHub — Biblioteca de Cursos Local**
 Organize e assista seus cursos offline diretamente no navegador. Sem instalação, sem internet, sem login.
 
@@ -74,7 +76,7 @@ Formatos de vídeo suportados: .mp4, .mkv, .webm e demais formatos suportados pe
 ÍconeFunção☰Biblioteca — todos os seus cursos▶Player — volta ao curso em reprodução＋Adicionar conteúdo👤Página do criador
 
 **🛠️ Tecnologias**
-TecnologiaUsoHTML5Estrutura e APIs de arquivo (File API, webkitdirectory)CSS3Estilização, animações e layout (@keyframes, gradient, transition)JavaScript (ES6+)Lógica de negócio, detecção de pastas, árvore de playlistTailwind CSS (CDN)Classes utilitárias de apoioGoogle FontsTipografia (Syne + Inter)localStoragePersistência do progresso sem backend
+Tecnologia Uso HTML5 Estrutura e APIs de arquivo (File API, webkitdirectory)CSS3 Estilização, animações e layout (@keyframes, gradient, transition)JavaScript (ES6+)Lógica de negócio, detecção de pastas, árvore de playlistTailwind CSS (CDN)Classes utilitárias de apoioGoogle FontsTipografia (Syne + Inter)localStoragePersistência do progresso sem backend
 
 **💡 Como o progresso é salvo?**
 O NexusHub usa o localStorage do navegador para guardar:
