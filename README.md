@@ -1,9 +1,9 @@
 <div align="center">
   <img src="https://github.com/user-attachments/assets/3127f784-6d83-4be5-ac3e-f0ee04cc0f52" alt="NexusHub Banner" width="100%">
 
-  # 🎬 NexusHub — Biblioteca de Cursos Local
+  # 🎬 NexusHub — Local Course Library
   
-  **Dê vida aos seus cursos offline com uma biblioteca organizada, gamificada e elegante.**
+  **Bring your offline courses to life with an organized, gamified, and elegant library.**
 
   [![GitHub license](https://img.shields.io/github/license/matheuspereirafx/nexushub?style=for-the-badge&color=blue)](https://github.com/matheuspereirafx/nexushub)
   [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -11,109 +11,109 @@
   [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
   <p align="center">
-    <a href="#-o-que-é">O que é</a> •
-    <a href="#-funcionalidades">Funcionalidades</a> •
-    <a href="#-tecnologias">Tecnologias</a> •
-    <a href="#-como-usar">Como usar</a> •
-    <a href="#-autor">Autor</a>
+    <a href="#-overview">Overview</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-how-to-use">How to Use</a> •
+    <a href="#-author">Author</a>
   </p>
 </div>
 
 ---
 
-## ✨ O que é o NexusHub?
-O **NexusHub** foi desenvolvido para superar as limitações de plataformas arcaicas que não oferecem acompanhamento visual. É um player focado em cursos offline feito em **HTML puro**, focado em **UI/UX**.
+## ✨ What is NexusHub?
+**NexusHub** was developed to overcome the limitations of outdated platforms that lack visual progress tracking. It is a video player focused on offline courses built with **Vanilla HTML**, with a strong focus on **UI/UX**.
 
-Com ele, você transforma seus arquivos locais em uma interface moderna. Basta abrir o arquivo `index.html` no navegador e importar sua pasta — o sistema organiza tudo automaticamente, salva seu progresso e permite retomar de onde parou, **sem depender de servidor ou internet**.
+With NexusHub, you transform your local files into a modern interface. Simply open the `index.html` file in your browser and import your folder — the system automatically organizes everything, saves your progress, and allows you to pick up exactly where you left off, **without needing a server or internet connection**.
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-| Recurso | Descrição |
+| Feature | Description |
 | :--- | :--- |
-| 📁 **Importação Inteligente** | Detecta automaticamente pastas mestres ou cursos únicos com módulos. |
-| 🎯 **Progresso Salvo** | O avanço é guardado no `localStorage` e persiste entre sessões. |
-| 📊 **Dashboard Visual** | Cards com barra de progresso, tempo total e aulas concluídas. |
-| 🎬 **Player Integrado** | Playlist em árvore com navegação fluída e marcação de aulas. |
-| 🔍 **Filtros de Biblioteca** | Organize por: *Todos*, *Não Iniciados*, *Em Andamento* ou *Concluídos*. |
-| 🖱️ **Drag & Drop** | Arraste pastas diretamente para a janela para adicionar conteúdo. |
-| 💾 **Zero Dependências** | Funciona 100% offline após o primeiro carregamento. |
+| 📁 **Smart Import** | Automatically detects master folders with multiple courses or a single course with modules. |
+| 🎯 **Progress Tracking** | Progress is saved to the browser's `localStorage` and persists between sessions. |
+| 📊 **Visual Dashboard** | Cards featuring progress bars, total time, and completed lessons per course. |
+| 🎬 **Integrated Player** | Tree-view playlist with smooth navigation and automatic lesson marking. |
+| 🔍 **Library Filters** | Organize by: *All*, *Not Started*, *In Progress*, or *Completed*. |
+| 🖱️ **Drag & Drop** | Drag folders directly into the window to add content instantly. |
+| 💾 **Zero Dependencies** | Works 100% offline after the initial load. |
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Tech Stack
 
-O projeto utiliza uma stack focada em independência e performance:
+The project uses a stack focused on independence and performance:
 
-* **HTML5:** Estrutura e APIs de arquivo (`File API`, `webkitdirectory`).
-* **CSS3 & Tailwind CSS:** Estilização moderna e layout responsivo via CDN.
-* **JavaScript (ES6+):** Lógica de detecção de pastas e persistência de dados.
-* **Google Fonts:** Tipografia selecionada (Syne + Inter).
-* **localStorage:** Banco de dados local para salvar seu progresso.
+* **HTML5:** Structure and File APIs (`File API`, `webkitdirectory`).
+* **CSS3 & Tailwind CSS:** Modern styling and responsive layout via CDN.
+* **JavaScript (ES6+):** Business logic, folder detection, and data persistence.
+* **Google Fonts:** Selected typography (Syne + Inter).
+* **localStorage:** Local database for saving your study progress.
 
 ---
 
-## 🗂️ Estrutura de Pastas Suportada
+## 🗂️ Supported Folder Structure
 
-O sistema reconhece automaticamente estas hierarquias:
+The system automatically recognizes these hierarchies:
 
-### 1. Pasta Mestre (Múltiplos Cursos)
+### 1. Master Folder (Multiple Courses)
 ```text
-📁 Meus Cursos/
-├── 📁 Curso de Python/
-│   ├── 📁 Módulo 1/
-│   │   ├── aula01.mp4
-│   │   └── aula02.mp4
-│   └── 📁 Módulo 2/
-└── 📁 Curso de JavaScript/
+📁 My Courses/
+├── 📁 Python Course/
+│   ├── 📁 Module 1/
+│   │   ├── lesson01.mp4
+│   │   └── lesson02.mp4
+│   └── 📁 Module 2/
+└── 📁 JavaScript Course/
 ```
 
-### 2. Curso Único
+### 2. Single Course
 ```text
-📁 Curso de React/
-├── 📁 01 - Introdução/
-│   ├── aula01.mp4
+📁 React Course/
+├── 📁 01 - Introduction/
+│   ├── lesson01.mp4
 └── 📁 02 - Hooks/
 ```
 
 ---
 
-## 📦 Como usar
+## 📦 How to Use
 
-1. **Baixe o projeto:**
+1. **Download the project:**
    ```bash
    git clone [https://github.com/matheuspereirafx/nexushub.git](https://github.com/matheuspereirafx/nexushub.git)
    ```
 
-2. **Abra no navegador:**
-   Dê dois cliques no arquivo `index.html`. Nenhuma instalação ou servidor é necessário.
+2. **Open in browser:**
+   Double-click the `index.html` file. No installation or local server (like Node or Apache) is required.
 
-3. **Importe seus cursos:**
-   Arraste sua pasta de cursos para a janela, ou clique em **"Selecionar Pasta de Cursos"** e escolha a pasta desejada.
-
----
-
-## 💡 Informações Importantes
-
-* **Persistência:** O progresso é salvo por navegador. Se você limpar o cache ou trocar de computador, o progresso local não será mantido por ser uma aplicação 100% local.
-* **Navegadores:** Recomendado o uso em navegadores baseados em **Chromium** (Chrome, Edge, Brave) para suporte total à API de leitura de diretórios.
+3. **Import your courses:**
+   Drag your course folder into the window, or click **"Select Course Folder"** and choose the desired directory.
 
 ---
 
-## 🤝 Contribuindo
+## 💡 Important Information
 
-Sinta-se à vontade para colaborar:
-* 🍴 Faça um **Fork** do projeto.
-* 🌿 Crie uma **Branch** para sua feature (`git checkout -b feature/minha-feature`).
-* 💾 Faça o **Commit** das alterações (`git commit -m 'feat: minha nova feature'`).
-* 🚀 Faça o **Push** para a sua Branch (`git push origin feature/minha-feature`).
-* 🔃 Abra um **Pull Request**.
+* **Persistence:** Progress is saved per browser. If you clear your cache or switch computers, your local progress will not be transferred as this is a 100% local application.
+* **Browsers:** Recommended for use in **Chromium-based** browsers (Chrome, Edge, Brave) for full support of the directory reading API.
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community an amazing place!
+* 🍴 **Fork** the project.
+* 🌿 Create a **Branch** for your feature (`git checkout -b feature/AmazingFeature`).
+* 💾 **Commit** your changes (`git commit -m 'feat: add some amazing feature'`).
+* 🚀 **Push** to the Branch (`git push origin feature/AmazingFeature`).
+* 🔃 Open a **Pull Request**.
 
 ---
 
 <div align="center">
-  <p>Desenvolvido com ♥ por <a href="https://github.com/matheuspereirafx">Matheus Pereira</a></p>
+  <p>Developed with ♥ by <a href="https://github.com/matheuspereirafx">Matheus Pereira</a></p>
   
   <p>
     <a href="https://github.com/matheuspereirafx">
